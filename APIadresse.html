@@ -3,28 +3,87 @@
 <head>
     <meta charset="UTF-8">
     <title>Adresse</title>
+    <link rel="stylesheet" href="adresse.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-giJF6kkoqNQ00vy+HMDP7azOuL0xtbfIcaT9wjKHr8RbDVddVHyTfAAsrekwKmP1" crossorigin="anonymous">
+    <style>
+        [v-cloak] {
+            display: none;
+        }
+    </style>
 </head>
 <body>
-    <div id="main">
-        <input type="text">
-        <div>
-            blabla
+<div id="main" v-cloak class="container">
+    <div class="row col">
+        <h1>Adresses</h1>
+    </div>
+    <div class="row col-12 fond">
+        <div class="addresse col-12">
+            <label class="col-2">Votre adresse : </label>
+            <span class="col" v-if="adresse.rue">{{adresse.rue}}, {{adresse.code}} {{adresse.ville}}</span>
+        </div>
+        <div class="input-group mb-8">
+            <input type="text" class="input-adresse" placeholder="44 rue du chocolat, 44000 Nantes"
+                   v-model="adresseForm">
         </div>
     </div>
-    <script  src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.0.5/vue.min.js" />
+    <div class="row col-12">
+        <ul>
+            <li v-for="adresse in adresses" :key="adresse.properties.id" @click="swapAdresse(adresse.properties)">
+                <p>{{adresse.properties.name}}</p>
+                <p>{{adresse.properties.postcode}}, {{adresse.properties.city}}</p>
+            </li>
+        </ul>
+    </div>
 
-    <script>
-        var adresse = new Vue({
-            el: "#main",
-            data : {
-
-            },
-            method:{
-                axiosAdresse : {
-
-                }
+</div>
+<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-ygbV9kiqUc6oa4msXn9868pTtWMgiQaeYH7/t7LECLbyPA2x65Kgf80OJFdroafW"
+        crossorigin="anonymous"></script>
+<script>
+    var adresse = new Vue({
+        el: "#main",
+        data: {
+            APIUrl: "https://api-adresse.data.gouv.fr/search/?limit=15&q=",
+            adresseForm: "",
+            adresses: [],
+            adresseJoin: null,
+            adresse : {
+                ville: '',
+                code: '',
+                rue: ''
             }
-        })
-    </script>
+        },
+        watch: {
+            adresseForm: function () {
+                this.adresseJoin = this.adresseForm.replace(',', ' ').trim().split(' ').join('+');
+                this.axiosAdresse();
+            }
+        },
+        methods: {
+            axiosAdresse: async function () {
+                try {
+                    if (this.adresseJoin){
+                        const response = await axios.get(this.APIUrl + this.adresseJoin);
+                       this.adresses = response.data.features;
+                    } else {
+                        this.adresses = [];
+                    }
+
+                } catch (e) {
+                    console.log(e);
+                }
+            },
+            swapAdresse: function (adresse) {
+                this.adresse.ville = adresse.city;
+                this.adresse.code = adresse.postcode;
+                this.adresse.rue = adresse.name
+                //const adresse = this.adresses.find
+            }
+        }
+    })
+</script>
 </body>
 </html>
